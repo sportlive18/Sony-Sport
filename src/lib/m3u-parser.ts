@@ -5,7 +5,6 @@ export interface Channel {
   group: string;
   url: string;
   referrer: string;
-  userAgent?: string;
 }
 
 export function parseM3U(content: string): Channel[] {
@@ -17,13 +16,10 @@ export function parseM3U(content: string): Channel[] {
       const info = lines[i];
       let url = '';
       let referrer = '';
-      let userAgent = '';
 
       for (let j = i + 1; j < lines.length; j++) {
         if (lines[j].startsWith('#EXTVLCOPT:http-referrer=')) {
           referrer = lines[j].replace('#EXTVLCOPT:http-referrer=', '');
-        } else if (lines[j].startsWith('#EXTVLCOPT:http-user-agent=')) {
-          userAgent = lines[j].replace('#EXTVLCOPT:http-user-agent=', '');
         } else if (!lines[j].startsWith('#')) {
           url = lines[j];
           break;
@@ -42,7 +38,6 @@ export function parseM3U(content: string): Channel[] {
         group: groupMatch?.[1] || 'Uncategorized',
         url,
         referrer,
-        userAgent,
       });
     }
   }
@@ -54,13 +49,25 @@ export async function fetchAndParseM3U(playlistUrl: string): Promise<Channel[]> 
   const res = await fetch(playlistUrl);
   let text = await res.text();
 
-  // Handle HTML wrapped M3U (common in some free providers)
-  if (text.includes('<pre>') && text.includes('</pre>')) {
-    const match = text.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
-    if (match) {
-      text = match[1].trim();
+  // Some playlists are wrapped inside an HTML <pre>...</pre> block.
+  // Extract the M3U content if so.
+  const preMatch = text.match(/<pre[^>]*>([\s\S]*?)<\/pre>/i);
+  if (preMatch) {
+    text = preMatch[1];
+  } else {
+    const extIdx = text.indexOf('#EXTINF');
+    if (extIdx > 0 && /<[a-z!]/i.test(text.slice(0, extIdx))) {
+      text = text.slice(extIdx);
     }
   }
+
+  // Decode common HTML entities
+  text = text
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
 
   return parseM3U(text);
 }

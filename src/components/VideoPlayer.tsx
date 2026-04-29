@@ -13,12 +13,10 @@ const API_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 class ProxyLoader extends Hls.DefaultConfig.loader {
   private referrer: string;
-  private userAgent: string;
 
-  constructor(config: any, referrer: string, userAgent: string) {
+  constructor(config: any, referrer: string) {
     super(config);
     this.referrer = referrer;
-    this.userAgent = userAgent;
   }
 
   load(context: any, config: any, callbacks: any) {
@@ -49,7 +47,7 @@ class ProxyLoader extends Hls.DefaultConfig.loader {
         'Content-Type': 'application/json',
         'apikey': API_KEY,
       },
-      body: JSON.stringify({ url: originalUrl, referrer: this.referrer, userAgent: this.userAgent }),
+      body: JSON.stringify({ url: originalUrl, referrer: this.referrer }),
       signal: controller.signal,
     })
       .then(async (response) => {
@@ -112,7 +110,6 @@ const VideoPlayer = ({ channel, onBack }: VideoPlayerProps) => {
 
     if (Hls.isSupported()) {
       const referrer = channel.referrer || '';
-      const userAgent = channel.userAgent || '';
 
       const hls = new Hls({
         enableWorker: true,
@@ -120,7 +117,7 @@ const VideoPlayer = ({ channel, onBack }: VideoPlayerProps) => {
         loader: class extends Hls.DefaultConfig.loader {
           constructor(config: any) {
             super(config);
-            return new ProxyLoader(config, referrer, userAgent);
+            return new ProxyLoader(config, referrer);
           }
         } as any,
       });

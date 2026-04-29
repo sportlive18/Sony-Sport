@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { url, referrer, userAgent } = await req.json();
+    const { url, referrer } = await req.json();
 
     if (!url) {
       return new Response(JSON.stringify({ error: 'Missing url' }), {
@@ -21,7 +21,7 @@ serve(async (req) => {
     }
 
     const headers: Record<string, string> = {
-      'User-Agent': userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     };
 
     if (referrer) {

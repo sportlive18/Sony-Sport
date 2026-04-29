@@ -37,21 +37,7 @@ const Index = () => {
     let list = channels;
     if (activeCategory !== "All") list = list.filter((c) => c.group === activeCategory);
     if (search) list = list.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
-
-    const getPriority = (name: string) => {
-      const n = name.toLowerCase();
-      if (n.includes("star sports 1")) return 1;
-      if (n.includes("willow extra")) return 2;
-      if (n.includes("willow hd")) return 3;
-      return 100;
-    };
-
-    return [...list].sort((a, b) => {
-      const pA = getPriority(a.name);
-      const pB = getPriority(b.name);
-      if (pA !== pB) return pA - pB;
-      return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
-    });
+    return list;
   }, [channels, activeCategory, search]);
 
   if (playing) {
